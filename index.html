@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Data Collector</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Audio Data Collector</h1>
+            <p class="subtitle">Record voice samples with transcripts for dataset creation</p>
+        </header>
+
+        <main>
+            <!-- Recording Section -->
+            <section class="card recording-section">
+                <h2>Record New Sample</h2>
+                
+                <div class="recorder-container">
+                    <div class="visualizer-container">
+                        <canvas id="visualizer"></canvas>
+                    </div>
+                    
+                    <div class="timer" id="timer">00:00</div>
+                    
+                    <div class="controls">
+                        <button id="recordBtn" class="btn btn-record">
+                            <span class="icon">⏺</span>
+                            <span class="text">Start Recording</span>
+                        </button>
+                        <button id="stopBtn" class="btn btn-stop" disabled>
+                            <span class="icon">⏹</span>
+                            <span class="text">Stop</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Preview Section -->
+                <div id="previewSection" class="preview-section hidden">
+                    <h3>Preview Recording</h3>
+                    <audio id="audioPreview" controls></audio>
+                    <button id="discardBtn" class="btn btn-secondary">Discard</button>
+                </div>
+
+                <!-- Transcript Input -->
+                <div class="transcript-section">
+                    <label for="transcript">Transcript</label>
+                    <textarea 
+                        id="transcript" 
+                        placeholder="Enter the exact text spoken in the recording..."
+                        rows="4"
+                    ></textarea>
+                    <div class="char-count">
+                        <span id="charCount">0</span> characters
+                    </div>
+                </div>
+
+                <!-- Metadata Section -->
+                <div class="metadata-section">
+                    <div class="form-group">
+                        <label for="speakerName">Speaker Name (optional)</label>
+                        <input type="text" id="speakerName" placeholder="Enter speaker name">
+                    </div>
+                    <!-- <div class="form-group">
+                        <label for="language">Language</label>
+                        <select id="language">
+                            <option value="en">English</option>
+                            <option value="es">Spanish</option>
+                            <option value="fr">French</option>
+                            <option value="de">German</option>
+                            <option value="hi">Hindi</option>
+                            <option value="zh">Chinese</option>
+                            <option value="ja">Japanese</option>
+                            <option value="ko">Korean</option>
+                            <option value="ar">Arabic</option>
+                            <option value="pt">Portuguese</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div> -->
+                    <!-- <div class="form-group">
+                        <label for="tags">Tags (comma separated)</label>
+                        <input type="text" id="tags" placeholder="e.g., male, adult, clear">
+                    </div> -->
+                </div>
+
+                <!-- Consent Checkbox -->
+                <div class="consent-section">
+                    <label class="consent-label">
+                        <input type="checkbox" id="consent">
+                        <span class="checkmark"></span>
+                        <span class="consent-text">
+                            I consent to my voice recording being collected and used for dataset creation purposes. 
+                            I understand this audio may be used for training AI/ML models.
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button id="submitBtn" class="btn btn-primary btn-large" disabled>
+                    <span class="icon">☁️</span>
+                    Upload Sample
+                </button>
+                
+                <div id="uploadStatus" class="upload-status hidden"></div>
+            </section>
+        </main>
+
+        <!-- <footer>
+            <p>Audio Data Collector - Built for dataset creation</p>
+        </footer> -->
+    </div>
+
+    <!-- Supabase JS - specific version -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
