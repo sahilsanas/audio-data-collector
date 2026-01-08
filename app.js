@@ -6,7 +6,6 @@ class AudioDataCollector {
         this.recordBtn = document.getElementById('recordBtn');
         this.stopBtn = document.getElementById('stopBtn');
         this.timer = document.getElementById('timer');
-        this.visualizer = document.getElementById('visualizer');
         this.previewSection = document.getElementById('previewSection');
         this.audioPreview = document.getElementById('audioPreview');
         this.discardBtn = document.getElementById('discardBtn');
@@ -20,16 +19,16 @@ class AudioDataCollector {
         this.uploadStatus = document.getElementById('uploadStatus');
 
         // State
-        this.mediaRecorder = null;
-        this.audioChunks = [];
         this.audioBlob = null;
         this.audioUrl = null;
         this.stream = null;
         this.timerInterval = null;
         this.startTime = null;
         this.recordingDuration = 0;
-        this.analyser = null;
-        this.animationId = null;
+        this.isRecording = false;
+        this.rawAudioData = [];
+        this.audioContext = null;
+        this.scriptProcessor = null;
 
         // Initialize
         this.init();
@@ -37,7 +36,6 @@ class AudioDataCollector {
 
     init() {
         this.bindEvents();
-        this.setupVisualizer();
     }
 
     bindEvents() {
@@ -54,115 +52,40 @@ class AudioDataCollector {
         this.consent.addEventListener('change', () => this.updateSubmitButton());
     }
 
-    setupVisualizer() {
-        const canvas = this.visualizer;
-        const ctx = canvas.getContext('2d');
-        
-        // Set canvas size
-        canvas.width = canvas.offsetWidth * 2;
-        canvas.height = canvas.offsetHeight * 2;
-        ctx.scale(2, 2);
-        
-        // Draw initial state
-        this.drawIdleVisualizer(ctx, canvas);
-    }
-
-    drawIdleVisualizer(ctx, canvas) {
-        const width = canvas.offsetWidth;
-        const height = canvas.offsetHeight;
-        
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(0, 0, width, height);
-        
-        ctx.strokeStyle = '#334155';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, height / 2);
-        ctx.lineTo(width, height / 2);
-        ctx.stroke();
-    }
-
-    drawVisualizer() {
-        if (!this.analyser) return;
-
-        const canvas = this.visualizer;
-        const ctx = canvas.getContext('2d');
-        const width = canvas.offsetWidth;
-        const height = canvas.offsetHeight;
-
-        const bufferLength = this.analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-        this.analyser.getByteTimeDomainData(dataArray);
-
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(0, 0, width, height);
-
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#6366f1';
-        ctx.beginPath();
-
-        const sliceWidth = width / bufferLength;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-            const v = dataArray[i] / 128.0;
-            const y = (v * height) / 2;
-
-            if (i === 0) {
-                ctx.moveTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
-
-            x += sliceWidth;
-        }
-
-        ctx.lineTo(width, height / 2);
-        ctx.stroke();
-
-        this.animationId = requestAnimationFrame(() => this.drawVisualizer());
-    }
-
     async startRecording() {
         try {
-            // Request microphone access
+            // Request microphone access - 16kHz mono for Whisper
             this.stream = await navigator.mediaDevices.getUserMedia({ 
                 audio: {
                     echoCancellation: true,
                     noiseSuppression: true,
-                    sampleRate: 44100
+                    sampleRate: 16000,
+                    channelCount: 1
                 } 
             });
 
-            // Setup audio context for visualization
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const source = audioContext.createMediaStreamSource(this.stream);
-            this.analyser = audioContext.createAnalyser();
-            this.analyser.fftSize = 2048;
-            source.connect(this.analyser);
+            // Setup audio context for WAV conversion
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+            const source = this.audioContext.createMediaStreamSource(this.stream);
 
-            // Setup MediaRecorder
-            this.mediaRecorder = new MediaRecorder(this.stream, {
-                mimeType: this.getSupportedMimeType()
-            });
+            // Setup ScriptProcessor for raw PCM capture (for WAV conversion)
+            this.scriptProcessor = this.audioContext.createScriptProcessor(4096, 1, 1);
+            this.rawAudioData = [];
             
-            this.audioChunks = [];
-
-            this.mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    this.audioChunks.push(event.data);
+            this.scriptProcessor.onaudioprocess = (e) => {
+                if (this.isRecording) {
+                    const channelData = e.inputBuffer.getChannelData(0);
+                    this.rawAudioData.push(new Float32Array(channelData));
                 }
             };
-
-            this.mediaRecorder.onstop = () => {
-                this.processRecording();
-            };
+            
+            source.connect(this.scriptProcessor);
+            this.scriptProcessor.connect(this.audioContext.destination);
 
             // Start recording
-            this.mediaRecorder.start(100); // Collect data every 100ms
+            this.isRecording = true;
             this.startTime = Date.now();
             this.startTimer();
-            this.drawVisualizer();
 
             // Update UI
             this.recordBtn.disabled = true;
@@ -176,56 +99,82 @@ class AudioDataCollector {
         }
     }
 
-    getSupportedMimeType() {
-        const mimeTypes = [
-            'audio/webm;codecs=opus',
-            'audio/webm',
-            'audio/ogg;codecs=opus',
-            'audio/mp4',
-            'audio/mpeg'
-        ];
+    // Convert Float32Array samples to 16-bit PCM WAV
+    encodeWAV(samples, sampleRate) {
+        const buffer = new ArrayBuffer(44 + samples.length * 2);
+        const view = new DataView(buffer);
 
-        for (const mimeType of mimeTypes) {
-            if (MediaRecorder.isTypeSupported(mimeType)) {
-                return mimeType;
+        // WAV header
+        const writeString = (offset, string) => {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
             }
+        };
+
+        writeString(0, 'RIFF');
+        view.setUint32(4, 36 + samples.length * 2, true);
+        writeString(8, 'WAVE');
+        writeString(12, 'fmt ');
+        view.setUint32(16, 16, true); // fmt chunk size
+        view.setUint16(20, 1, true); // audio format (PCM)
+        view.setUint16(22, 1, true); // num channels (mono)
+        view.setUint32(24, sampleRate, true); // sample rate
+        view.setUint32(28, sampleRate * 2, true); // byte rate
+        view.setUint16(32, 2, true); // block align
+        view.setUint16(34, 16, true); // bits per sample
+        writeString(36, 'data');
+        view.setUint32(40, samples.length * 2, true);
+
+        // Convert float samples to 16-bit PCM
+        let offset = 44;
+        for (let i = 0; i < samples.length; i++) {
+            const s = Math.max(-1, Math.min(1, samples[i]));
+            view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+            offset += 2;
         }
-        return 'audio/webm';
+
+        return new Blob([buffer], { type: 'audio/wav' });
     }
 
     stopRecording() {
-        if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-            this.mediaRecorder.stop();
-        }
+        this.isRecording = false;
 
         // Stop all tracks
         if (this.stream) {
             this.stream.getTracks().forEach(track => track.stop());
         }
 
-        // Stop timer
-        this.stopTimer();
-
-        // Stop visualizer
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
+        // Disconnect audio nodes
+        if (this.scriptProcessor) {
+            this.scriptProcessor.disconnect();
         }
 
-        // Reset visualizer
-        const ctx = this.visualizer.getContext('2d');
-        this.drawIdleVisualizer(ctx, this.visualizer);
+        // Stop timer
+        this.stopTimer();
 
         // Update UI
         this.recordBtn.disabled = false;
         this.recordBtn.classList.remove('recording');
         this.recordBtn.querySelector('.text').textContent = 'Start Recording';
         this.stopBtn.disabled = true;
+
+        // Process the recording
+        this.processRecording();
     }
 
     processRecording() {
-        const mimeType = this.getSupportedMimeType();
-        this.audioBlob = new Blob(this.audioChunks, { type: mimeType });
+        // Merge all audio chunks into one Float32Array
+        const totalLength = this.rawAudioData.reduce((acc, chunk) => acc + chunk.length, 0);
+        const mergedData = new Float32Array(totalLength);
+        let offset = 0;
+        for (const chunk of this.rawAudioData) {
+            mergedData.set(chunk, offset);
+            offset += chunk.length;
+        }
+
+        // Convert to 16kHz WAV
+        const sampleRate = this.audioContext ? this.audioContext.sampleRate : 16000;
+        this.audioBlob = this.encodeWAV(mergedData, sampleRate);
         this.audioUrl = URL.createObjectURL(this.audioBlob);
 
         // Show preview
@@ -243,7 +192,7 @@ class AudioDataCollector {
         
         this.audioBlob = null;
         this.audioUrl = null;
-        this.audioChunks = [];
+        this.rawAudioData = [];
         this.recordingDuration = 0;
         
         this.audioPreview.src = '';
@@ -368,12 +317,8 @@ class AudioDataCollector {
     }
 
     getFileExtension() {
-        const mimeType = this.audioBlob.type;
-        if (mimeType.includes('webm')) return 'webm';
-        if (mimeType.includes('ogg')) return 'ogg';
-        if (mimeType.includes('mp4')) return 'm4a';
-        if (mimeType.includes('mpeg')) return 'mp3';
-        return 'webm';
+        // Always WAV for Whisper fine-tuning
+        return 'wav';
     }
 
     showStatus(message, type) {
