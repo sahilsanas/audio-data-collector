@@ -5,20 +5,20 @@
 }
 
 :root {
-    --primary: #6366f1;
-    --primary-hover: #4f46e5;
-    --danger: #ef4444;
-    --danger-hover: #dc2626;
-    --success: #22c55e;
-    --warning: #f59e0b;
-    --bg: #0f172a;
-    --bg-card: #1e293b;
-    --bg-input: #334155;
-    --text: #f8fafc;
-    --text-muted: #94a3b8;
-    --border: #475569;
+    --primary: #ffffff;
+    --primary-hover: #e0e0e0;
+    --danger: #ffffff;
+    --danger-hover: #e0e0e0;
+    --success: #ffffff;
+    --warning: #ffffff;
+    --bg: #000000;
+    --bg-card: #111111;
+    --bg-input: #1a1a1a;
+    --text: #ffffff;
+    --text-muted: #888888;
+    --border: #333333;
     --radius: 12px;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
 }
 
 body {
@@ -82,7 +82,7 @@ h3 {
     font-size: 2.5rem;
     font-weight: 700;
     font-family: 'Courier New', monospace;
-    color: var(--primary);
+    color: #ffffff;
     margin-bottom: 1.5rem;
 }
 
@@ -99,7 +99,7 @@ h3 {
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
-    border: none;
+    border: 1px solid var(--border);
     border-radius: 8px;
     font-size: 1rem;
     font-weight: 500;
@@ -109,17 +109,18 @@ h3 {
 }
 
 .btn:disabled {
-    opacity: 0.5;
+    opacity: 0.3;
     cursor: not-allowed;
 }
 
 .btn-record {
-    background: var(--danger);
-    color: white;
+    background: #ffffff;
+    color: #000000;
+    border: 2px solid #ffffff;
 }
 
 .btn-record:hover:not(:disabled) {
-    background: var(--danger-hover);
+    background: #e0e0e0;
     transform: scale(1.02);
 }
 
@@ -128,13 +129,14 @@ h3 {
 }
 
 @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-    50% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+    50% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); }
 }
 
 .btn-stop {
     background: var(--bg-input);
     color: var(--text);
+    border: 1px solid var(--border);
 }
 
 .btn-stop:hover:not(:disabled) {
@@ -142,12 +144,13 @@ h3 {
 }
 
 .btn-primary {
-    background: var(--primary);
-    color: white;
+    background: #ffffff;
+    color: #000000;
+    border: 2px solid #ffffff;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: var(--primary-hover);
+    background: #e0e0e0;
     transform: translateY(-1px);
 }
 
@@ -295,13 +298,13 @@ select {
 }
 
 .consent-label input[type="checkbox"]:checked ~ .checkmark {
-    background: var(--primary);
-    border-color: var(--primary);
+    background: #ffffff;
+    border-color: #ffffff;
 }
 
 .checkmark::after {
     content: '✓';
-    color: white;
+    color: #000000;
     font-size: 14px;
     font-weight: bold;
     display: none;
@@ -328,21 +331,21 @@ select {
 }
 
 .upload-status.success {
-    background: rgba(34, 197, 94, 0.2);
-    color: var(--success);
-    border: 1px solid var(--success);
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid #ffffff;
 }
 
 .upload-status.error {
-    background: rgba(239, 68, 68, 0.2);
-    color: var(--danger);
-    border: 1px solid var(--danger);
+    background: rgba(255, 255, 255, 0.05);
+    color: #888888;
+    border: 1px solid #888888;
 }
 
 .upload-status.loading {
-    background: rgba(99, 102, 241, 0.2);
-    color: var(--primary);
-    border: 1px solid var(--primary);
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid #ffffff;
 }
 
 /* Samples Section */
@@ -444,12 +447,12 @@ select {
 
 .btn-delete {
     background: transparent;
-    color: var(--danger);
+    color: #888888;
     padding: 0.5rem;
 }
 
 .btn-delete:hover {
-    background: rgba(239, 68, 68, 0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .empty-state {
@@ -472,7 +475,7 @@ select {
     width: 24px;
     height: 24px;
     border: 3px solid var(--border);
-    border-top-color: var(--primary);
+    border-top-color: #ffffff;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -493,8 +496,8 @@ footer {
 .tag {
     display: inline-block;
     padding: 0.25rem 0.5rem;
-    background: var(--primary);
-    color: white;
+    background: #ffffff;
+    color: #000000;
     border-radius: 4px;
     font-size: 0.75rem;
     margin-right: 0.25rem;

@@ -10,7 +10,6 @@ class AudioDataCollector {
         this.audioPreview = document.getElementById('audioPreview');
         this.discardBtn = document.getElementById('discardBtn');
         this.transcript = document.getElementById('transcript');
-        this.charCount = document.getElementById('charCount');
         this.speakerName = document.getElementById('speakerName');
         this.language = document.getElementById('language');
         this.tags = document.getElementById('tags');
@@ -44,10 +43,7 @@ class AudioDataCollector {
         this.discardBtn.addEventListener('click', () => this.discardRecording());
         this.submitBtn.addEventListener('click', () => this.uploadSample());
         
-        this.transcript.addEventListener('input', () => {
-            this.charCount.textContent = this.transcript.value.length;
-            this.updateSubmitButton();
-        });
+        this.transcript.addEventListener('input', () => this.updateSubmitButton());
 
         this.consent.addEventListener('change', () => this.updateSubmitButton());
     }
