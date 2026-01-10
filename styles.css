@@ -72,6 +72,35 @@ h3 {
     color: var(--text-muted);
 }
 
+/* Recording Tips */
+.recording-tips {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.recording-tips h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+}
+
+.recording-tips ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.recording-tips li {
+    font-size: 0.875rem;
+    color: var(--text);
+    padding: 0.25rem 0;
+    line-height: 1.5;
+}
+
 /* Recorder */
 .recorder-container {
     text-align: center;

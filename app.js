@@ -11,8 +11,6 @@ class AudioDataCollector {
         this.discardBtn = document.getElementById('discardBtn');
         this.transcript = document.getElementById('transcript');
         this.speakerName = document.getElementById('speakerName');
-        this.language = document.getElementById('language');
-        this.tags = document.getElementById('tags');
         this.consent = document.getElementById('consent');
         this.submitBtn = document.getElementById('submitBtn');
         this.uploadStatus = document.getElementById('uploadStatus');
@@ -267,12 +265,6 @@ class AudioDataCollector {
 
             const audioUrl = urlData.publicUrl;
 
-            // Parse tags
-            const tagsArray = this.tags.value
-                .split(',')
-                .map(tag => tag.trim())
-                .filter(tag => tag.length > 0);
-
             // Save metadata to database
             const sampleData = {
                 transcript: this.transcript.value.trim(),
@@ -280,8 +272,8 @@ class AudioDataCollector {
                 audio_filename: filename,
                 duration_ms: this.recordingDuration,
                 speaker_name: this.speakerName.value.trim() || null,
-                language: this.language.value,
-                tags: tagsArray,
+                language: 'en',
+                tags: [],
                 created_at: new Date().toISOString()
             };
 
@@ -301,8 +293,6 @@ class AudioDataCollector {
             this.discardRecording();
             this.transcript.value = '';
             this.speakerName.value = '';
-            this.tags.value = '';
-            this.charCount.textContent = '0';
 
         } catch (error) {
             console.error('Upload error:', error);
